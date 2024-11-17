@@ -3,3 +3,31 @@
 #+STARTUP: overview hideblocks indent
 #+PROPERTY: header-args:C :main yes :includes <stdio.h> <stdlib.h> <string.h> :results output :noweb yes
 
+* Define the =union=
+#+begin_src C
+  // Define structure of a Node
+  struct s_node{
+    struct s_node* up;
+    struct s_node* left;
+    struct s_node* right;
+    Tag tag; // Differentiator between leaf and node
+    char path[255]; // String containig the path to this node
+  };
+
+  struct s_leaf{
+    struct s_tree* left;
+    char key[255];
+    char* value;
+    int count;
+    Tag tag;
+  };
+
+  // Node OR a Leaf (Not both at the same time, as in a struct)
+  union u_tree{
+    struct s_node n;
+    struct s_leaf l;
+  };
+
+#+end_src
+
+#+RESULTS:
