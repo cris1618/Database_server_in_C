@@ -4,11 +4,22 @@
 #+PROPERTY: header-args:C :main yes :includes <stdio.h> <stdlib.h> <string.h> <unistd.h> <assert.h> <errno.h> :results output :noweb yes
 
 * Implementing a Binary Tree
+Define the structure of the three by creating Nodes, Leaves and the Tree
 #+name: bin_tree
 #+begin_src C 
   #define TagRoot 1 /* 00 01 */
   #define TagNode 2 /* 00 10 */
   #define TagLeaf 4 /* 01 00 */
+
+  // Define a Null pointer
+  typedef void* Nullptr;
+  Nullptr nullptr = 0;
+
+  // Macro for the function that find the last leaf (Only need to chage the Macro)
+  #define find_last(x) find_last_linear(x)
+  #define reterr(x) \			
+  errno = (x); // Change error number to x
+  return nullptr; // return a null pointer
 
   typedef unsigned int int32;
   typedef unsigned short int int16;
@@ -48,7 +59,7 @@ Define the tree root
 #+name: tree_root
 #+begin_src C
   <<bin_tree>>
-  // Create the root of the tree
+    // Create the root of the tree
   Tree root = {
       .n = { // Node
         .tag = (TagRoot | TagNode),
@@ -83,6 +94,8 @@ Function to create and link nodes
     Node* n;
     int16 size;
 
+
+    errno = NoError;
     assert(parent);
     n = (Node *)malloc((int)size);
     zero((int8 *)n, size);
@@ -99,7 +112,8 @@ Function to create and link nodes
   }
 
 
-  int main(){
+  // Main function for testing purposes
+  /*int main(){ 
     Node* n, *n2; 
     n = create_node((Node *)&root, (int8 *)"/Users");
     assert(n);
@@ -112,9 +126,63 @@ Function to create and link nodes
     free(n2);
     free(n);
     return 0;
-  }
+    }*/ 
 #+end_src
 
 #+RESULTS: create_node
-: Address of n: 0x7ffe41d6c688
-: Address of n2: 0x7ffe41d6c690
+
+Create a Leaf
+#+name: create_leaf
+#+begin_src C
+  <<create_node>>
+
+    // Function to find the last leaf
+  Leaf* find_last_linear(Node* parent){ // Linear search for the moment
+    Leaf* l;
+
+    errno = NoError;
+    assert(parent);
+
+    if(!parent->east)
+      reterr(NoError); // Return Error
+
+    // Loop as long as l as an east "Brother"
+    for(l = parent->east; l->east; l = l->east); // l will be the leaf on the last east position    
+    assert(l);
+
+    return l;
+    }
+
+
+  Leaf* create_leaf(Node* parent, int8* key, int16 count){
+    Leaf* l, *new;
+    Node* n;
+    int16 size;
+
+
+    assert(parent);
+    l = find_last(parent); // last leaf
+    size = sizeof(struct s_leaf);
+    new = (Leaaf *)malloc(size);
+    assert(new);
+
+    if(!l) // Directly connected with the parent 
+      parent->east = new;
+    else
+      // l is a leaf
+      l->east = new;
+
+    // Initialize fields of the leaf
+    zero((int8 *)new, size);
+    new->tag = TagLeaf;
+    new->west = (!l) ? (Node *)parent : (Leaf *)l;
+
+
+
+
+  }
+
+#+end_src
+
+#+RESULTS: create_leaf
+
