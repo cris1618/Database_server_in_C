@@ -154,10 +154,9 @@ Create a Leaf
     return l;
     }
 
-
+  // Function to create a new leaf
   Leaf* create_leaf(Node* parent, int8* key, int8* value, int16 count){
     Leaf* l, *new;
-    Node* n;
     int16 size;
 
 
@@ -167,8 +166,10 @@ Create a Leaf
     new = (Leaf *)malloc(size);
     assert(new);
 
-    if(!l) // Directly connected with the parent 
+    if(!l){ // Directly connected with the parent 
+      printf("NULL");
       parent->east = new;
+    }
     else
       // l is a leaf
       l->east = new;
@@ -176,7 +177,7 @@ Create a Leaf
     // Initialize fields of the leaf
     zero((int8 *)new, size);
     new->tag = TagLeaf;
-    new->west = (!l) ? (Node *)parent : (Leaf *)l;
+    new->west = (!l) ? (Tree *)parent : (Tree *)l;
 
     strncpy((char *)new->key, (char *)key, 127);
     new->value = (int8 *)malloc(count);
@@ -186,9 +187,40 @@ Create a Leaf
     new->size = count;
 
     return l;
-
   }
 
+  // Test the creation of a leaf
+  int main(){
+    Node* n, *n2; 
+    Leaf* l1, *l2;
+    int8* key, *value;
+    int16 size;
+
+    n = create_node((Node *)&root, (int8 *)"/Users");
+    assert(n);
+    n2 = create_node(n, (int8 *)"/Users/login");
+    assert(n2);
+
+    key = (int8 *)"Cristian"; // Name of the user
+    value = (int8 *)"abc77301";
+    size = (int16)strlen((char *)value);
+    l1 = create_leaf(n2, key, value, size);
+    //assert(l1);
+
+    // Print addreses of Nodes
+    printf("Address of n: %p\n", &n);
+    printf("Address of n2: %p\n", &n2);
+
+    // Print values of Leaves
+    printf("Value of l1: %s\n", l1->value);
+    printf("Address of l2: %p\n", &l2);
+
+    free(n2);
+    free(n);
+    free(l1);
+    free(l2);
+    return 0;
+  }
 #+end_src
 
 #+RESULTS: create_leaf
