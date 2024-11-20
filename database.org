@@ -11,15 +11,17 @@ Define the structure of the three by creating Nodes, Leaves and the Tree
   #define TagNode 2 /* 00 10 */
   #define TagLeaf 4 /* 01 00 */
 
+  #define NoError 0
+
   // Define a Null pointer
   typedef void* Nullptr;
   Nullptr nullptr = 0;
 
   // Macro for the function that find the last leaf (Only need to chage the Macro)
   #define find_last(x) find_last_linear(x)
-  #define reterr(x) \			
-  errno = (x); // Change error number to x
-  return nullptr; // return a null pointer
+  #define reterr(x) \		
+    errno = (x); \
+    return nullptr; // return a null pointer
 
   typedef unsigned int int32;
   typedef unsigned short int int16;
@@ -51,7 +53,7 @@ Define the structure of the three by creating Nodes, Leaves and the Tree
   };
   typedef union u_tree Tree;
 
-  #+end_src
+#+end_src
 
 #+RESULTS: bin_tree
 
@@ -149,12 +151,11 @@ Create a Leaf
     // Loop as long as l as an east "Brother"
     for(l = parent->east; l->east; l = l->east); // l will be the leaf on the last east position    
     assert(l);
-
     return l;
     }
 
 
-  Leaf* create_leaf(Node* parent, int8* key, int16 count){
+  Leaf* create_leaf(Node* parent, int8* key, int8* value, int16 count){
     Leaf* l, *new;
     Node* n;
     int16 size;
@@ -163,7 +164,7 @@ Create a Leaf
     assert(parent);
     l = find_last(parent); // last leaf
     size = sizeof(struct s_leaf);
-    new = (Leaaf *)malloc(size);
+    new = (Leaf *)malloc(size);
     assert(new);
 
     if(!l) // Directly connected with the parent 
@@ -177,8 +178,14 @@ Create a Leaf
     new->tag = TagLeaf;
     new->west = (!l) ? (Node *)parent : (Leaf *)l;
 
+    strncpy((char *)new->key, (char *)key, 127);
+    new->value = (int8 *)malloc(count);
+    zero(new->value, count);
+    assert(new->value);
+    strncpy((char *)new->value, (char *)value, count);
+    new->size = count;
 
-
+    return l;
 
   }
 
