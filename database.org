@@ -167,7 +167,6 @@ Create a Leaf
     assert(new);
 
     if(!l){ // Directly connected with the parent 
-      printf("NULL");
       parent->east = new;
     }
     else
@@ -186,11 +185,11 @@ Create a Leaf
     strncpy((char *)new->value, (char *)value, count);
     new->size = count;
 
-    return l;
+    return new;
   }
 
   // Test the creation of a leaf
-  int main(){
+  /*int main(){
     Node* n, *n2; 
     Leaf* l1, *l2;
     int8* key, *value;
@@ -205,23 +204,32 @@ Create a Leaf
     value = (int8 *)"abc77301";
     size = (int16)strlen((char *)value);
     l1 = create_leaf(n2, key, value, size);
-    //assert(l1);
-
+    assert(l1);
+    l2 = create_leaf(n, "Utente", "edf83938", size);
+    assert(l2);
     // Print addreses of Nodes
     printf("Address of n: %p\n", &n);
     printf("Address of n2: %p\n", &n2);
 
+    puts("");
     // Print values of Leaves
     printf("Value of l1: %s\n", l1->value);
-    printf("Address of l2: %p\n", &l2);
+    printf("Key of l1: %s\n", l1->key);
+    puts("");
+    printf("Value of l2: %s\n", l2->value);    
+    printf("Key of l2: %s\n", l2->key);
 
-    free(n2);
-    free(n);
-    free(l1);
-    free(l2);
     return 0;
-  }
+  }*/
 #+end_src
 
 #+RESULTS: create_leaf
+: Address of n: 0x7ffecf0e2a98
+: Address of n2: 0x7ffecf0e2aa0
+: 
+: Value of l1: abc77301
+: Key of l1: Cristian
+: 
+: Value of l2: edf83938
+: Key of l2: Utente
 
