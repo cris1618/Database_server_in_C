@@ -1,14 +1,15 @@
 #+TITLE: Database Server in C
 #+AUTHOR: Cristian Del Gobbo (pledged)
 #+STARTUP: overview hideblocks indent
-#+PROPERTY: header-args:C :main yes :includes <stdio.h> <stdlib.h> <string.h> <unistd.h> <assert.h> <errno.h> :results output :noweb yes
+#+PROPERTY: header-args:C :main yes :includes <stdio.h> <stdbool.h> <stdlib.h> <string.h> <arpa/inet.h> <unistd.h> <assert.h> <errno.h> <sys/socket.h> <netinet/in.h> :results output :noweb yes
 
 * Introduction
 Create an In-memory Database, which store temporary info and 
 has a variety of applications.
 
 The most used In-memory database is called =Redis=. The aim of the 
-project is creating a very fast database, challenging the =redis= one.
+project is creating a very fast database, challenging the =redis= one, 
+Focusing on CPU optimization.
 
 * Implementing a Binary Tree
 Define the structure of the three by creating Nodes, Leaves and the Tree
@@ -240,3 +241,68 @@ Create a Leaf
 : Value of l2: edf83938
 : Key of l2: Utente
 
+* Creating the in-memory Database
+After we saw how to create a binary tree, It's time to start
+creating the core database server itself. =Cache22=
+
+Start by creating the basis of the network communication
+So that we can login to our server.
+#+name: net_com
+#+begin_src C
+  #define _GNU_SOURCE
+  // Definitions
+  #define HOST "127.0.0.1"
+  #define PORT 12049 //Unique for this protocol
+
+  // Define custom integers
+  typedef unsigned int int32;
+  typedef unsigned short int int16;
+  typedef unsigned char int8;
+  
+
+  void mainloop(int16 port){
+    struct sockaddr_in sock;
+    int s;
+
+    sock.sin_family = AF_INET;
+    sock.sin_port = htons(PORT); // htons 
+    sock.sin.addr.s_addr = inet_addr(HOST); 
+
+    s = socket(AF_INET, SOCK_STREAM, 0);
+    assert(s > 0);
+
+    errno = 0;
+    if (bind(s, (struct sockaddr *)&sock, sizeof(sock))) // Bind a name to a socket
+      assert_perror(errno); // Quit the program
+
+    listen(s, 20); // Accept connections
+  }
+  int main(int, char**);
+
+  // server continuation
+  bool scontinuation;
+
+  int main(int argc, char* argv[]){
+    char* sport;
+    int16 port;
+
+    if(argc < 2)
+      sport = PORT;
+else
+sport = argv[1];
+
+port = (int16)atoi(sport);
+
+    scontinuation = true;
+    // Run the program while scontinuation is true
+    while(scontinuation)
+      mainloop(port);
+
+    return 0;
+  }
+
+#+end_src
+
+#+RESULTS: net_com
+
+#+RESULTS: start
