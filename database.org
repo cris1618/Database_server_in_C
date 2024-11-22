@@ -3,6 +3,13 @@
 #+STARTUP: overview hideblocks indent
 #+PROPERTY: header-args:C :main yes :includes <stdio.h> <stdlib.h> <string.h> <unistd.h> <assert.h> <errno.h> :results output :noweb yes
 
+* Introduction
+Create an In-memory Database, which store temporary info and 
+has a variety of applications.
+
+The most used In-memory database is called =Redis=. The aim of the 
+project is creating a very fast database, challenging the =redis= one.
+
 * Implementing a Binary Tree
 Define the structure of the three by creating Nodes, Leaves and the Tree
 #+name: bin_tree
