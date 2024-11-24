@@ -259,8 +259,35 @@ So that we can login to our server.
   typedef unsigned int int32;
   typedef unsigned short int int16;
   typedef unsigned char int8;
+  
+  // structure to handle the client access
+  struct s_client{
+    int s; 
+    // IP address
+    char ip[16];
+    int16 port;
+  };
+  typedef struct s_client Client;
+
   // server continuation
   bool scontinuation; 
+
+  void mainloop(int s) {
+    struct sockaddr_in cli; // Client
+    int len;
+    int s2; // sock for the client
+    char *ip;
+    int16 port;
+
+
+    s2 = accept(s, (struct sockaddr *)&cli, &len);
+    if(s2<0){
+      sleep(1);
+      return;
+    }
+    //scontinuation = false; // Stop the loop
+  }
+  
 
   int initserver(int16 port){
     struct sockaddr_in sock;
@@ -289,22 +316,9 @@ So that we can login to our server.
       }
 
     printf("Server listening on %s: %d\n", HOST, port);
-    //scontinuation=false;
 
     return s;
   }
-
-
-  /* void mainloop(int s){
-     initserver(s);
-     }*/
-
-  void mainloop(int s) {
-    // Placeholder: Handle incoming connections or process signals here
-    // For this example, we stop after one iteration
-    scontinuation = false; // Stop the loop
-  }
-
 
   int main(int argc, char* argv[]){
     char* sport;
@@ -318,7 +332,7 @@ So that we can login to our server.
       sport = argv[1];
 
     port = (int16)atoi(sport);
-    
+
 
     s = initserver(port);
     scontinuation = true;
@@ -327,8 +341,9 @@ So that we can login to our server.
     while(scontinuation)
       mainloop(s);
 
-    close(s); // Clean up the socket when done
     printf("Server stopped.\n");
+    close(s); // Clean up the socket when done
+
 
     return 0;
   }
@@ -336,5 +351,3 @@ So that we can login to our server.
 #+end_src
 
 #+RESULTS: net_com
-: Server listening on 127.0.0.1: 12049
-: Server stopped.
