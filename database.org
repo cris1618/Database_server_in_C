@@ -1,7 +1,7 @@
 #+TITLE: Database Server in C
 #+AUTHOR: Cristian Del Gobbo (pledged)
 #+STARTUP: overview hideblocks indent
-#+PROPERTY: header-args:C :main yes :includes <stdio.h> <stdbool.h> <stdlib.h> <string.h> <arpa/inet.h> <unistd.h> <assert.h> <errno.h> <sys/socket.h> <netinet/in.h> :results output :noweb yes
+#+PROPERTY: header-args:C :main yes :includes <stdio.h> <stdbool.h> <stdarg.h> <stddef.h> <stdlib.h> <string.h> <arpa/inet.h> <unistd.h> <assert.h> <errno.h> <sys/socket.h> <netinet/in.h> :results output :noweb yes
 
 * Introduction
 Create an In-memory Database, which store temporary info and 
@@ -248,55 +248,87 @@ creating the core database server itself. =Cache22=
 Start by creating the basis of the network communication
 So that we can login to our server.
 #+name: net_com
-#+begin_src C
+#+begin_src C :tangle net.c
   #define _GNU_SOURCE
+
   // Definitions
   #define HOST "127.0.0.1"
-  #define PORT 12049 //Unique for this protocol
+  #define PORT "12049" //Unique for this protocol
 
   // Define custom integers
   typedef unsigned int int32;
   typedef unsigned short int int16;
   typedef unsigned char int8;
-  
+  // server continuation
+  bool scontinuation; 
 
-  void mainloop(int16 port){
+  int initserver(int16 port){
     struct sockaddr_in sock;
     int s;
 
     sock.sin_family = AF_INET;
-    sock.sin_port = htons(PORT); // htons 
-    sock.sin.addr.s_addr = inet_addr(HOST); 
+    sock.sin_port = htons((int)port); // htons 
+    sock.sin_addr.s_addr = inet_addr(HOST); 
 
     s = socket(AF_INET, SOCK_STREAM, 0);
     assert(s > 0);
 
     errno = 0;
     if (bind(s, (struct sockaddr *)&sock, sizeof(sock))) // Bind a name to a socket
-      assert_perror(errno); // Quit the program
+      {
+        fprintf(stderr, "Error: %s (Failed to bind on %s:%d, Errno: %d)\n", 
+                strerror(errno), HOST, port, errno);
+        exit(EXIT_FAILURE);
+      }
 
-    listen(s, 20); // Accept connections
+    errno = 0;
+    if(listen(s, 20)) // Accept connections
+      {
+        fprintf(stderr, "Error: %s\n", strerror(errno));
+        exit(EXIT_FAILURE);
+      }
+
+    printf("Server listening on %s: %d\n", HOST, port);
+    //scontinuation=false;
+
+    return s;
   }
-  int main(int, char**);
 
-  // server continuation
-  bool scontinuation;
+
+  /* void mainloop(int s){
+     initserver(s);
+     }*/
+
+  void mainloop(int s) {
+    // Placeholder: Handle incoming connections or process signals here
+    // For this example, we stop after one iteration
+    scontinuation = false; // Stop the loop
+  }
+
 
   int main(int argc, char* argv[]){
     char* sport;
     int16 port;
+    int s;
 
-    if(argc < 2)
+
+    if (argc < 2)
       sport = PORT;
-else
-sport = argv[1];
+    else
+      sport = argv[1];
 
-port = (int16)atoi(sport);
+    port = (int16)atoi(sport);
+    
 
+    s = initserver(port);
     scontinuation = true;
+
     // Run the program while scontinuation is true
     while(scontinuation)
-      mainloop(port);
+      mainloop(s);
+
+    close(s); // Clean up the socket when done
+    printf("Server stopped.\n");
 
     return 0;
   }
@@ -304,5 +336,5 @@ port = (int16)atoi(sport);
 #+end_src
 
 #+RESULTS: net_com
-
-#+RESULTS: start
+: Server listening on 127.0.0.1: 12049
+: Server stopped.
