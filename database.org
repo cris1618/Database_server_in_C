@@ -285,8 +285,12 @@ So that we can login to our server.
   void childloop(Client* cli){
     int8 buf[256];
     int16 n;
-    int8* p;
-    int8 cmd[256], folder[256], args[256];
+    int8* p, *f;
+    int8 cmd[256], folder[256], args[256]; // Create the command, the folder and the argument
+
+    // Debugging print
+    //write(cli->s, "Hey\n", 4);
+    //exit(0);
 
     zero(buf, 256);
     read(cli->s,(char *)buf, 255);
@@ -294,6 +298,7 @@ So that we can login to our server.
     if(n>254)
       n=254;
 
+    // Examples of commands:
     // select /Users/bob
     // create /Users/logins
     // insert /Users/bob values
@@ -301,9 +306,9 @@ So that we can login to our server.
     for(p=buf; 
         (*p)
           && (n--)
-          && (*p == ' ')
-          && (*p == '\n')
-          && (*p == '\r')
+          && (*p != ' ')
+          && (*p != '\n')
+          && (*p != '\r')
           ;p++);
 
     zero(cmd, 256); 
@@ -312,10 +317,39 @@ So that we can login to our server.
 
     if(!(*p) || (!n)){
       strncpy((char *)cmd, (char *)buf, 255);
+      goto done; // If it points at the end, jump to done
     } else if((*p == ' ') || (*p == '\n') || (*p == '\r')){
       ,*p = 0;
       strncpy((char *)cmd, (char *)buf, 255);
     }
+
+    // Second iteration 
+    for(p++, f=p; 
+        (*p)
+          && (n--)
+          && (*p != ' ')
+          && (*p != '\n')
+          && (*p != '\r')
+          ;p++);
+
+
+    if(!(*p) || (!n)){
+      strncpy((char *)folder, (char *)f, 255);
+      goto done; 
+    } else if((*p == ' ') || (*p == '\n') || (*p == '\r')){
+      ,*p = 0;
+      strncpy((char *)folder, (char *)f, 255);
+    }
+    p++; // jump the space
+    if(*p){
+      strncpy((char *)args, (char *)p, 255);
+      for(p=args; ((*p) && (*p != '\n') && (*p != '\r')); p++);
+      ,*p = 0;
+    }
+   done:
+    dprintf(cli->s, "\ncmd:\t%s\n", cmd);
+    dprintf(cli->s, "folder:\t%s\n", folder);
+    dprintf(cli->s, "args:\t%s\n", args);
 
     return;
   }
@@ -344,7 +378,7 @@ So that we can login to our server.
     assert(client);
 
     zero((int8 *)client, sizeof(struct s_client));
-    client->s = s;
+    client->s = s2;
     client->port = port;
     strncpy(client->ip, ip, 15); 
 
