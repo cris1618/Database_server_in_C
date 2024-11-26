@@ -259,7 +259,7 @@ So that we can login to our server.
   typedef unsigned int int32;
   typedef unsigned short int int16;
   typedef unsigned char int8;
-  
+
   // structure to handle the client access
   struct s_client{
     int s; 
@@ -271,23 +271,102 @@ So that we can login to our server.
 
   // server continuation
   bool scontinuation; 
+  // Child continuation
+  bool ccontinuation;
+
+  void zero(int8* buf, int16 size){
+    int8* p;
+    int16 n;
+
+    for(n=0, p=buf; n<size; n++, p++)
+      ,*p = 0;
+  }
+
+  void childloop(Client* cli){
+    int8 buf[256];
+    int16 n;
+    int8* p;
+    int8 cmd[256], folder[256], args[256];
+
+    zero(buf, 256);
+    read(cli->s,(char *)buf, 255);
+    n = (int16)strlen((char *)buf);
+    if(n>254)
+      n=254;
+
+    // select /Users/bob
+    // create /Users/logins
+    // insert /Users/bob values
+
+    for(p=buf; 
+        (*p)
+          && (n--)
+          && (*p == ' ')
+          && (*p == '\n')
+          && (*p == '\r')
+          ;p++);
+
+    zero(cmd, 256); 
+    zero(folder, 256);
+    zero(args, 256);
+
+    if(!(*p) || (!n)){
+      strncpy((char *)cmd, (char *)buf, 255);
+    } else if((*p == ' ') || (*p == '\n') || (*p == '\r')){
+      ,*p = 0;
+      strncpy((char *)cmd, (char *)buf, 255);
+    }
+
+    return;
+  }
 
   void mainloop(int s) {
     struct sockaddr_in cli; // Client
-    int len;
+    int32 len;
     int s2; // sock for the client
     char *ip;
     int16 port;
+    Client* client;
+    pid_t pid;
+    int8 cmd[256], folder[256], args[256];
 
 
-    s2 = accept(s, (struct sockaddr *)&cli, &len);
-    if(s2<0){
-      sleep(1);
+    s2 = accept(s, (struct sockaddr *)&cli, (unsigned int *)&len);
+    if(s2<0)
+      return;
+
+    port = (int16)htons((int)cli.sin_port);
+    ip = inet_ntoa(cli.sin_addr);
+
+    printf("Connection from %s: %d\n", ip, port);
+
+    client = (Client *)malloc(sizeof(struct s_client));
+    assert(client);
+
+    zero((int8 *)client, sizeof(struct s_client));
+    client->s = s;
+    client->port = port;
+    strncpy(client->ip, ip, 15); 
+
+    // Fork, program continue in two indipendent parts
+    pid = fork();
+    if(pid){ // Inside of the parent
+      free(client);
+      return;
+    }else{ // Inside of the child
+      dprintf(s2, "100 Connected to Cache22 server\n");      
+      ccontinuation = true;
+      while(ccontinuation)
+        childloop(client);
+      close(s2);
+      free(client);
+
       return;
     }
-    //scontinuation = false; // Stop the loop
+
+    return;    
   }
-  
+
 
   int initserver(int16 port){
     struct sockaddr_in sock;
