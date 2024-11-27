@@ -288,10 +288,6 @@ So that we can login to our server.
     int8* p, *f;
     int8 cmd[256], folder[256], args[256]; // Create the command, the folder and the argument
 
-    // Debugging print
-    //write(cli->s, "Hey\n", 4);
-    //exit(0);
-
     zero(buf, 256);
     read(cli->s,(char *)buf, 255);
     n = (int16)strlen((char *)buf);
