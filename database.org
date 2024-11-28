@@ -260,6 +260,8 @@ So that we can login to our server.
   typedef unsigned short int int16;
   typedef unsigned char int8;
 
+
+
   // structure to handle the client access
   struct s_client{
     int s; 
@@ -268,6 +270,44 @@ So that we can login to our server.
     int16 port;
   };
   typedef struct s_client Client;
+
+
+  // Definition of a function
+  typedef int32 (*Callback)(Client*, int8*, int8*); // One for each arguments (folder, args)
+
+  struct s_cmdhandler{
+    int8* cmd;
+    Callback handler;
+  };
+  typedef struct s_cmdhandler CmdHandler;
+
+  int32 handle_hello(Client *cli, int8* folder, int8* args){
+    dprintf(cli->s, "hello '%s'\n", folder);
+    return 0;
+  }
+
+  CmdHandler handlers[] = {
+    {(int8*)"Hello", handle_hello}
+  };
+
+  Callback getcmd(int8* cmd){
+    Callback cb; 
+    int16 n, arrlen;
+
+    if(sizeof(handlers) < 16)
+      return 0;
+    arrlen = sizeof(handlers) / 16;
+
+    cb = 0;
+    for(n=0; n<arrlen; n++)
+      if(!strcmp((char *)cmd, (char *)handlers[n].cmd)){
+        cb = handlers[n].handler;
+        break;
+      }
+    
+
+    return cb;
+  }
 
   // server continuation
   bool scontinuation; 
@@ -314,7 +354,16 @@ So that we can login to our server.
     if(!(*p) || (!n)){
       strncpy((char *)cmd, (char *)buf, 255);
       goto done; // If it points at the end, jump to done
-    } else if((*p == ' ') || (*p == '\n') || (*p == '\r')){
+    } 
+
+
+    else if((*p == '\n') || (*p == '\r')){
+      ,*p = 0;
+      strncpy((char *)cmd, (char *)buf, 255);
+      goto done;
+    }
+
+    else if((*p == ' ')){
       ,*p = 0;
       strncpy((char *)cmd, (char *)buf, 255);
     }
@@ -434,7 +483,12 @@ So that we can login to our server.
     int16 port;
     int s;
 
+    Callback x;
 
+    x = getcmd((int8*)"Hello");
+    printf("%p\n", x);
+
+    return 0;
     if (argc < 2)
       sport = PORT;
     else
@@ -460,3 +514,4 @@ So that we can login to our server.
 #+end_src
 
 #+RESULTS: net_com
+: 0x55642c2d4409
