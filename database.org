@@ -28,8 +28,15 @@ Define the structure of the three by creating Nodes, Leaves and the Tree
   // Macro for the function that find the last leaf (Only need to chage the Macro)
   #define find_last(x) find_last_linear(x)
   #define reterr(x) \		
-    errno = (x); \
-    return nullptr; // return a null pointer
+  errno = (x); \
+  return nullptr; // return a null pointer
+
+  #define Print(x)				\
+    zero(buf, 256);				\
+    strncpy((char *)buf, (char *)(x), 255);		\
+    size = (int16)strlen((char *)buf);		\
+    if(size)					\
+      write(fd, (char *)buf, size)
 
   typedef unsigned int int32;
   typedef unsigned short int int16;
@@ -61,7 +68,7 @@ Define the structure of the three by creating Nodes, Leaves and the Tree
   };
   typedef union u_tree Tree;
 
-#+end_src
+    #+end_src
 
 #+RESULTS: bin_tree
 
@@ -153,12 +160,18 @@ Create a Leaf
     errno = NoError;
     assert(parent);
 
+    if(!parent){
+      fprintf(stderr, "Error: parent is NULL\n");
+      return NULL;
+    }
+
     if(!parent->east)
-      reterr(NoError); // Return Error
+      return (Leaf *)0; // Return Error
 
     // Loop as long as l as an east "Brother"
     for(l = parent->east; l->east; l = l->east); // l will be the leaf on the last east position    
     assert(l);
+
     return l;
     }
 
@@ -228,18 +241,91 @@ Create a Leaf
     printf("Key of l2: %s\n", l2->key);
 
     return 0;
-  }*/
+    }*/
 #+end_src
 
 #+RESULTS: create_leaf
-: Address of n: 0x7ffecf0e2a98
-: Address of n2: 0x7ffecf0e2aa0
-: 
-: Value of l1: abc77301
-: Key of l1: Cristian
-: 
-: Value of l2: edf83938
-: Key of l2: Utente
+
+Create a pretty printer
+#+name: pretty
+#+begin_src C :tangle pretty.c
+  <<create_leaf>>
+
+    // Create helper functions
+  int8* indent(int16 n){ // return string with 2*n spaces
+    int16 i;
+    static int8 buf[256];
+    int8* p;
+
+    if(n < 1)
+      return (int8 *)"";
+    assert(n < 120);
+    zero(buf, 256);
+
+    for(i=0, p=buf; i<n; i++, p+=2)
+      strcpy((char *)p, "  ");
+
+    return buf; 
+    }
+
+  // Pretty printer
+  void print_tree(int fd, Tree* _root){
+    int8 indentation;
+    int8 buf[256];
+    int16 size;
+    Node* n;
+    Leaf* l, *last;
+
+    indentation = 0;
+    for(n = (Node *)_root; n; n = n->west){
+      Print(indent(indentation++));
+      Print(n->path);
+      Print("\n");
+      if(n->east){
+        last = find_last(n);
+        if(last)
+          for(l = last;(Node *)l->west != n; l = (Leaf *)l->west){
+            Print(indent(indentation));
+            Print(n->path);
+            Print("/");
+            Print(l->key);
+            Print(" -> '");
+            write(fd, (char *)l->value, (int)l->size);
+            Print("'\n");
+          } 
+      }
+    }
+    return;
+  }
+
+  int main(){
+    /*Node* n, *n2; 
+    Leaf* l1, *l2;
+    int8* key, *value;
+    int16 size;
+
+    n = create_node((Node *)&root, (int8 *)"/Users");
+    assert(n);
+    n2 = create_node(n, (int8 *)"/Users/login");
+    assert(n2);
+
+    key = (int8 *)"Cristian"; // Name of the user
+    value = (int8 *)"abc77301";
+    size = (int16)strlen((char *)value);
+    l1 = create_leaf(n2, key, value, size);
+    assert(l1);
+    l2 = create_leaf(n, "Utente", "edf83938", size);
+    assert(l2);*/
+
+    // Pretty print   
+    print_tree(1, &root);
+
+    return 0;
+  }
+#+end_src
+
+#+RESULTS: pretty
+: /
 
 * Creating the in-memory Database
 After we saw how to create a binary tree, It's time to start
