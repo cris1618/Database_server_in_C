@@ -27,13 +27,15 @@ Define the structure of the three by creating Nodes, Leaves and the Tree
 
   // Macro for the function that find the last leaf (Only need to chage the Macro)
   #define find_last(x) find_last_linear(x)
-  #define reterr(x) \		
-  errno = (x); \
+  #define lookup(x,y) lookup_linear(x,y)
+  #define find_node(x) find_node_linear(x)
+  #define reterr(x)\		
+  errno = (x);\
   return nullptr; // return a null pointer
 
   #define Print(x)				\
     zero(buf, 256);				\
-    strncpy((char *)buf, (char *)(x), 255);		\
+    strncpy((char *)buf, (char *)(x), 255);	\
     size = (int16)strlen((char *)buf);		\
     if(size)					\
       write(fd, (char *)buf, size)
@@ -68,7 +70,7 @@ Define the structure of the three by creating Nodes, Leaves and the Tree
   };
   typedef union u_tree Tree;
 
-    #+end_src
+  #+end_src
 
 #+RESULTS: bin_tree
 
@@ -109,7 +111,7 @@ Function to create and link nodes
   // Function to create node
   Node* create_node(Node* parent, int8* path){
     Node* n;
-    int16 size;
+    int16 size = sizeof(struct s_node);
 
 
     errno = NoError;
@@ -122,7 +124,7 @@ Function to create and link nodes
 
     // Initialize fields inside of n
     n->tag = TagNode;
-    n->north = (Tree *)parent;
+    n->north = (Node *)parent; // Tree *
     strncpy((char *)n->path, (char *)path, 255);
 
     return n;
@@ -144,7 +146,7 @@ Function to create and link nodes
     free(n);
     return 0;
     }*/ 
-#+end_src
+    #+end_src
 
 #+RESULTS: create_node
 
@@ -298,8 +300,8 @@ Create a pretty printer
     return;
   }
 
-  int main(){
-    /*Node* n, *n2; 
+  /*int main(){
+    Node* n, *n2; 
     Leaf* l1, *l2;
     int8* key, *value;
     int16 size;
@@ -315,17 +317,40 @@ Create a pretty printer
     l1 = create_leaf(n2, key, value, size);
     assert(l1);
     l2 = create_leaf(n, "Utente", "edf83938", size);
-    assert(l2);*/
+    assert(l2);
 
     // Pretty print   
     print_tree(1, &root);
 
     return 0;
-  }
+    }*/
 #+end_src
 
 #+RESULTS: pretty
 : /
+:   /Users
+:     /Users/login
+
+Implement a Linear Search Alghorithm
+#+name: lins
+#+begin_src C
+  <<pretty>>
+  Node* find_node_linear(int* path){
+    Node* p, *ret;
+    for(ret=(Node*)0, p=(Node*)&root; p; p = p->west)
+      if(!strcmp((char*)p->path, (char*)path)){
+        ret = p;
+        break;
+      }
+    return ret;
+    }
+
+  Leaf* lookup_linear(int8* path, int8* key){
+
+  }
+#+end_src
+
+#+RESULTS: lins
 
 * Creating the in-memory Database
 After we saw how to create a binary tree, It's time to start
