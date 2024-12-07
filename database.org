@@ -346,45 +346,68 @@ Implement a Linear Search Alghorithm
     return (p) ? p->value : (int8*)0;
   }
 
+// Print the tree
+  Tree* example_tree(){
+    int8* c; // Keep track of subfolders
+    Node* n, *p;
+    int8  path[256];
+    int32 x;
+
+    zero(path, 256);
+    x = 0;
+
+    for(n = (Node *)&root, c='a'; c<='z'; c++){
+      x = (int32)strlen((char *)path);
+      ,*(path + x++) = '/';
+      ,*(path + x) = c;
+
+      p = n;
+      n = create_node(p, path);
+    }
+    return (Tree *)&root;
+  }
+
   // Main function for testing purposes
   int main(){
-    Node* n, *n2; 
-    Leaf* l1, *l2;
-    int8* key, *value;
-    int16 size;
-    int8* test;
+    Tree* example;
 
-    n = create_node((Node *)&root, (int8 *)"/Users");
-    assert(n);
-    n2 = create_node(n, (int8 *)"/Users/login");
-    assert(n2);
+    example = example_tree();
+    print_tree(1, example);
 
-    key = (int8 *)"Cristian"; // Name of the user
-    value = (int8 *)"abc77301";
-    size = (int16)strlen((char *)value);
-    l1 = create_leaf(n2, key, value, size);
-    assert(l1);
-    l2 = create_leaf(n, "Utente", "edf83938", size);
-    assert(l2);
-
-    // Pretty print   
-    print_tree(1, &root);
-    test = lookup((int8*)"/Users/login",
-                  (int8*)"Cristian");
-    if(test)
-      printf("%s\n", test);
-    else
-      printf("No\n");
-     
     return 0;
   }
 #+end_src
 
 #+RESULTS: lins
-: /
-:   /Users
-:     /Users/login
-: abc77301
+#+begin_example
+/
+  /a
+    /a/b
+      /a/b/c
+        /a/b/c/d
+          /a/b/c/d/e
+            /a/b/c/d/e/f
+              /a/b/c/d/e/f/g
+                /a/b/c/d/e/f/g/h
+                  /a/b/c/d/e/f/g/h/i
+                    /a/b/c/d/e/f/g/h/i/j
+                      /a/b/c/d/e/f/g/h/i/j/k
+                        /a/b/c/d/e/f/g/h/i/j/k/l
+                          /a/b/c/d/e/f/g/h/i/j/k/l/m
+                            /a/b/c/d/e/f/g/h/i/j/k/l/m/n
+                              /a/b/c/d/e/f/g/h/i/j/k/l/m/n/o
+                                /a/b/c/d/e/f/g/h/i/j/k/l/m/n/o/p
+                                  /a/b/c/d/e/f/g/h/i/j/k/l/m/n/o/p/q
+                                    /a/b/c/d/e/f/g/h/i/j/k/l/m/n/o/p/q/r
+                                      /a/b/c/d/e/f/g/h/i/j/k/l/m/n/o/p/q/r/s
+                                        /a/b/c/d/e/f/g/h/i/j/k/l/m/n/o/p/q/r/s/t
+                                          /a/b/c/d/e/f/g/h/i/j/k/l/m/n/o/p/q/r/s/t/u
+                                            /a/b/c/d/e/f/g/h/i/j/k/l/m/n/o/p/q/r/s/t/u/v
+                                              /a/b/c/d/e/f/g/h/i/j/k/l/m/n/o/p/q/r/s/t/u/v/w
+                                                /a/b/c/d/e/f/g/h/i/j/k/l/m/n/o/p/q/r/s/t/u/v/w/x
+                                                  /a/b/c/d/e/f/g/h/i/j/k/l/m/n/o/p/q/r/s/t/u/v/w/x/y
+                                                    /a/b/c/d/e/f/g/h/i/j/k/l/m/n/o/p/q/r/s/t/u/v/w/x/y/z
+#+end_example
 
 * Creating the in-memory Database
 After we saw how to create a binary tree, It's time to start
