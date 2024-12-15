@@ -549,13 +549,15 @@ Start by creating the basis of the network communication
 So that we can login to our server.
 #+name: net_com
 #+begin_src C :tangle net.c
+  // Import tree structure from previous blocks
+  <<pretty>>
   #define _GNU_SOURCE
 
-  // Definitions
+    // Definitions
   #define HOST "127.0.0.1"
   #define PORT "12049" //Unique for this protocol
 
-  // Define custom integers
+    // Define custom integers
   typedef unsigned int int32;
   typedef unsigned short int int16;
   typedef unsigned char int8;
@@ -614,19 +616,20 @@ So that we can login to our server.
   // Child continuation
   bool ccontinuation;
 
-  void zero(int8* buf, int16 size){
-    int8* p;
-    int16 n;
+  /* void zero(int8* buf, int16 size){
+     int8* p;
+     int16 n;
 
-    for(n=0, p=buf; n<size; n++, p++)
-      ,*p = 0;
-  }
+     for(n=0, p=buf; n<size; n++, p++)
+     ,*p = 0;
+     }*/
 
   void childloop(Client* cli){
     int8 buf[256];
     int16 n;
     int8* p, *f;
     int8 cmd[256], folder[256], args[256]; // Create the command, the folder and the argument
+    Callback cb; 
 
     zero(buf, 256);
     read(cli->s,(char *)buf, 255);
@@ -690,12 +693,19 @@ So that we can login to our server.
       strncpy((char *)args, (char *)p, 255);
       for(p=args; ((*p) && (*p != '\n') && (*p != '\r')); p++);
       ,*p = 0;
-    }
+    } 
    done:
     dprintf(cli->s, "\ncmd:\t%s\n", cmd);
     dprintf(cli->s, "folder:\t%s\n", folder);
     dprintf(cli->s, "args:\t%s\n", args);
-
+    
+    cb = getcmd(cmd);
+    if(!cb){
+      dprintf(cli->s, "400 Command not found: %s\n", cmd);
+    } else {
+      cb(cli, folder, args);
+      return;
+    }
     return;
   }
 
@@ -782,13 +792,33 @@ So that we can login to our server.
     char* sport;
     int16 port;
     int s;
+    Node* n, *n2;
+    Leaf* l;
+    int8* p;
+    int16 sz;
+  
+    p = (int8 *)"true";
+    sz = (int16)strlen((char *)p);
+
+    n = create_node(&root, (int8 *)"/Users/");
+    printf("n\t%p\n", n);
+
+    n2 = create_node(n, (int8 *)"/Users/Cristian");
+    printf("n2\t%p\n", n2);
+
+    l = create_leaf(n, (int8 *)"loggedin", p, sz);
+    printf("l\t%p\n", l);
+
+    free(n2);
+    free(n);
+    exit(0);
 
     Callback x;
 
-    x = getcmd((int8*)"Hello");
-    printf("%p\n", x);
+    /*x = getcmd((int8*)"Hello");
+      printf("%p\n", x);
 
-    return 0;
+      return 0;*/
     if (argc < 2)
       sport = PORT;
     else
@@ -814,5 +844,7 @@ So that we can login to our server.
 #+end_src
 
 #+RESULTS: net_com
-: 0x55fd00a75409
+: n	0x559fc730b2a0
+: n2	0x559fc730c3e0
+: l	0x559fc730c510
 
